@@ -4,9 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Admin - Recrutamento</title>
-  <link rel="stylesheet" href="admin.css"> <!-- O CSS que criamos antes -->
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
+  <link rel="stylesheet" href="admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -20,7 +19,7 @@
     <p id="loginErro" style="color:red; margin-top: 15px; font-weight: bold;"></p>
   </div>
 
-  <!-- TELA DO PAINEL DE CONTROLE (Oculta até fazer login) -->
+  <!-- TELA DO PAINEL DE CONTROLE -->
   <div class="container" id="dashboardScreen" style="display: none;">
     <button class="btn-sair" onclick="fazerLogout()">Sair do Sistema</button>
     <h2>Gestão de Candidatos</h2>
@@ -36,7 +35,6 @@
       </select>
     </div>
 
-    <!-- Tabela Responsiva (Usar overflow-x e min-width resolve bugs no celular) -->
     <div style="overflow-x: auto;">
       <table style="min-width: 800px;">
         <thead>
@@ -46,47 +44,67 @@
             <th>Cargo Pretendido</th>
             <th>Idade / Sexo</th>
             <th>Contato</th>
-            <th>Anexos (Arquivos)</th>
+            <th>Anexos</th>
+            <th>Ações</th> <!-- COLUNA NOVA -->
           </tr>
         </thead>
         <tbody id="tabelaCorpo">
-          <!-- Dados renderizados aqui -->
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- Biliotecas Importantes do JS -->
+  <!-- JANELA MODAL DE AGENDAMENTO -->
+  <div id="modalAgendamento" class="modal">
+    <div class="modal-content">
+      <h3 style="margin-top:0;">Agendar: <span id="candNomeT"></span></h3>
+      
+      <label>Data da Entrevista:</label>
+      <input type="date" id="dataEntrevista">
+      
+      <label>Horário:</label>
+      <input type="time" id="horaEntrevista">
+      
+      <label>Local/Endereço:</label>
+      <input type="text" id="localEntrevista" value="Supermercado - Setor de RH">
+      
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="btn-acao" style="background:#25D366;" onclick="enviarWhatsApp()">📲 WhatsApp</button>
+        <button class="btn-acao" style="background:#0066cc;" onclick="enviarEmail()">📧 E-mail</button>
+        <button class="btn-acao" style="background:#999;" onclick="fecharModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <script>
-    // 1. INICIALIZAÇÃO
-    // ⚠️ ATENÇÃO: NÃO ESQUEÇA DE COLAR A SUA URL E A SUA CHAVE ANON AQUI:
+    // 1. INICIALIZAÇÃO E CHAVES
     const supabaseUrl = "https://xwidfuieyleqfddsupnl.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3aWRmdWlleWxlcWZkZHN1cG5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Njg4NzAsImV4cCI6MjA4NzU0NDg3MH0.7OwPJNt7IOYXdjMh27gAlKz_vSwmsXD8iTJNNHXGBTs";
-
+    
     const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // 2. FUNÇÃO: Verificar se já está logado
-    // Roda automaticamente assim que a página admin.html abre
+    // INICIALIZA O EMAILJS (Coloque sua chave pública aqui)
+    emailjs.init("lycdmjrdHE0nwBOTT");
+
+    // Variável para guardar os dados de quem o admin clicou
+    let candidatoAlvo = null;
+
+    // 2. FUNÇÕES DE AUTENTICAÇÃO
     async function checarSessao() {
       const { data: { session } } = await clienteSupabase.auth.getSession();
-      
       if (session) {
-        // Se já está logado, esconde a tela de login e mostra a tela do painel
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('dashboardScreen').style.display = 'block';
         carregarCandidatos();
       } else {
-        // Se NÃO está logado, deixa a tela de login visível (que é o padrão do CSS)
         document.getElementById('loginScreen').style.display = 'block';
       }
     }
     
-    // Chama a função para rodar a checagem
     checarSessao();
 
-    // 3. FUNÇÃO: Fazer Login (Quando clica no botão "Entrar")
     async function fazerLogin() {
       const email = document.getElementById('adminEmail').value;
       const senha = document.getElementById('adminSenha').value;
@@ -95,70 +113,48 @@
       msgerro.innerText = "Entrando...";
       msgerro.style.color = "blue";
       
-      const { data, error } = await clienteSupabase.auth.signInWithPassword({ 
-        email: email, 
-        password: senha 
-      });
+      const { data, error } = await clienteSupabase.auth.signInWithPassword({ email, password: senha });
       
       if (error) {
-        msgerro.innerText = 'Erro: E-mail ou senha inválidos. Tente novamente.';
+        msgerro.innerText = 'Erro: E-mail ou senha inválidos.';
         msgerro.style.color = "red";
-        console.error(error.message);
       } else {
-        // Se o login deu certo, a gente recarrega a página.
-        // Ao recarregar, o 'checarSessao()' (acima) vai ver que a pessoa tem um "cookie" (Sessão) e já joga ela pro painel.
         location.reload(); 
       }
     }
 
-    // 4. FUNÇÃO: Fazer Logout
     async function fazerLogout() {
       await clienteSupabase.auth.signOut();
-      // Ao deslogar, o "cookie" morre e a página é atualizada para mostrar o login
       location.reload();
     }
 
-    // 5. FUNÇÃO: Carregar Candidatos da Tabela (O cérebro do Dash)
+    // 3. FUNÇÃO DE BUSCA DOS DADOS (O DASHBOARD)
     async function carregarCandidatos() {
       const filtro = document.getElementById('filtroCargo').value;
       const tbody = document.getElementById('tabelaCorpo');
       
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Buscando currículos...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Buscando currículos...</td></tr>';
 
-      // Essa Query pega TODAS as colunas (*) da tabela 'candidatos'
-      // O 'order' faz a ordenação pela data (mais recentes no topo)
       let query = clienteSupabase.from('candidatos').select('*').order('criado_em', { ascending: false });
       
-      // Se a pessoa selecionou um cargo específico (ex: Açougue), a gente adiciona um 'filtro' (eq = equals = igual) na query
       if (filtro !== 'Todos') {
         query = query.eq('cargo', filtro);
       }
 
-      // Agora a gente MANDA a query para o Supabase e espera os dados voltarem
       const { data: candidatos, error } = await query;
 
-      if (error) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Erro ao buscar dados. Tente novamente.</td></tr>';
-        console.error("Erro ao buscar dados:", error);
+      if (error || candidatos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #666;">Nenhum candidato encontrado.</td></tr>';
         return;
       }
 
-      if (candidatos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666;">Nenhum candidato encontrado.</td></tr>';
-        return;
-      }
-
-      // Limpa a tabela para não duplicar dados
       tbody.innerHTML = '';
       
-      // 'forEach' pega um candidato de cada vez na lista de dados que chegou do banco e transforma em uma linha da tabela (<tr>)
       candidatos.forEach(cand => {
-        // Formata a data (que está no formato do banco) para o padrão brasileiro DD/MM/AAAA
         const dataFormatada = new Date(cand.criado_em).toLocaleDateString('pt-BR');
-        
         const tr = document.createElement('tr');
         
-        // Aqui dentro a gente 'costura' o HTML usando os valores dinâmicos (${variavel})
+        // Renderiza a linha.
         tr.innerHTML = `
           <td>${dataFormatada}</td>
           <td><strong>${cand.nome}</strong></td>
@@ -169,11 +165,92 @@
             <a href="${cand.curriculo_url}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: bold; margin-bottom: 5px; display: inline-block;">📄 Currículo</a><br>
             <a href="${cand.video_url}" target="_blank" style="color: #27ae60; text-decoration: none; font-weight: bold; display: inline-block;">🎥 Vídeo</a>
           </td>
+          <td>
+            <button class="btn-acao btn-agendar" onclick="abrirModal('${cand.nome}', '${cand.telefone}', '${cand.email}', '${cand.cargo}')">Agendar</button>
+            <button class="btn-acao btn-excluir" onclick="deletarCandidato('${cand.id}', '${cand.nome}')">Excluir</button>
+          </td>
         `;
         
-        // Adiciona a linha novinha em folha no final da tabela
         tbody.appendChild(tr);
       });
+    }
+
+    // 4. FUNÇÕES DE AÇÃO (EXCLUIR E AGENDAR)
+    
+    // Deletar do banco
+    async function deletarCandidato(id, nome) {
+      if(!confirm(`⚠️ Tem certeza que deseja excluir o candidato ${nome}?`)) return;
+      
+      const { error } = await clienteSupabase.from('candidatos').delete().eq('id', id);
+      
+      if(error) {
+        alert("Erro ao excluir. O RLS de delete foi configurado no Supabase?");
+      } else {
+        carregarCandidatos(); // Atualiza a tabela na hora
+      }
+    }
+
+    // Abrir e fechar a janelinha
+    function abrirModal(nome, telefone, email, cargo) {
+      candidatoAlvo = { nome, telefone, email, cargo };
+      document.getElementById('candNomeT').innerText = nome;
+      document.getElementById('modalAgendamento').style.display = 'flex';
+    }
+
+    function fecharModal() {
+      document.getElementById('modalAgendamento').style.display = 'none';
+    }
+
+    // Disparar WhatsApp via API gratuita
+    function enviarWhatsApp() {
+      const data = document.getElementById('dataEntrevista').value;
+      const hora = document.getElementById('horaEntrevista').value;
+      const local = document.getElementById('localEntrevista').value;
+
+      if(!data || !hora) return alert("Preencha a data e o horário.");
+
+      const dataBr = data.split('-').reverse().join('/');
+      const numeroLimpo = candidatoAlvo.telefone.replace(/\D/g, ''); // Tira traços e espaços
+
+      const mensagem = `Olá ${candidatoAlvo.nome}, tudo bem? Aqui é do setor de RH.\n\nAnalisamos seu currículo para a vaga de *${candidatoAlvo.cargo}* e você foi selecionado(a) para uma entrevista! 🎉\n\n🗓️ *Data:* ${dataBr}\n⏰ *Horário:* ${hora}\n📍 *Local:* ${local}\n\nPor favor, confirme sua presença.`;
+
+      window.open(`https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagem)}`, '_blank');
+      fecharModal();
+    }
+
+    // Disparar E-mail via EmailJS
+    async function enviarEmail() {
+      const data = document.getElementById('dataEntrevista').value;
+      const hora = document.getElementById('horaEntrevista').value;
+      const local = document.getElementById('localEntrevista').value;
+
+      if(!data || !hora) return alert("Preencha a data e o horário.");
+      
+      const dataBr = data.split('-').reverse().join('/');
+      const btnEmail = event.target;
+      
+      btnEmail.innerText = "Enviando...";
+      btnEmail.disabled = true;
+
+      try {
+
+        await emailjs.send("service_dnul1wp", "template_h80jzoq", {
+          email_candidato: candidatoAlvo.email,
+          nome_candidato: candidatoAlvo.nome,
+          cargo: candidatoAlvo.cargo,
+          data: dataBr,
+          hora: hora,
+          local: local
+        });
+        alert("E-mail de entrevista enviado com sucesso!");
+        fecharModal();
+      } catch (error) {
+        alert("Erro ao enviar o e-mail.");
+        console.error(error);
+      } finally {
+        btnEmail.innerText = "📧 E-mail";
+        btnEmail.disabled = false;
+      }
     }
   </script>
 </body>
