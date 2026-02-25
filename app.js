@@ -12,6 +12,33 @@ const form = document.getElementById('formCandidato');
 const btnEnviar = document.getElementById('btnEnviar');
 const msgStatus = document.getElementById('msgStatus');
 
+// ----------------------------------------------------
+// MÁSCARA DE TELEFONE (Formatação Automática)
+// ----------------------------------------------------
+const inputTelefone = document.getElementById('telefone');
+
+inputTelefone.addEventListener('input', function (e) {
+  // 1. Remove tudo que não for número
+  let valor = e.target.value.replace(/\D/g, '');
+  
+  // 2. Limita a 11 dígitos (DDD + 9 números)
+  valor = valor.substring(0, 11);
+  
+  // 3. Aplica a formatação passo a passo
+  if (valor.length === 0) {
+    e.target.value = '';
+    return;
+  }
+  
+  if (valor.length <= 2) {
+    e.target.value = `(${valor}`;
+  } else if (valor.length <= 7) {
+    e.target.value = `(${valor.substring(0, 2)}) ${valor.substring(2)}`;
+  } else {
+    e.target.value = `(${valor.substring(0, 2)}) ${valor.substring(2, 7)}-${valor.substring(7)}`;
+  }
+});
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   console.log("Botão clicado! Iniciando processo...");
