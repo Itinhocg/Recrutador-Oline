@@ -41,6 +41,29 @@ inputTelefone.addEventListener('input', function (e) {
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
+   // ==========================================
+  // TRAVA DE SEGURANÇA 1: Honeypot (Anti-Bot)
+  // ==========================================
+  const honeypot = document.getElementById('honeypot').value;
+  if (honeypot !== "") {
+    console.warn("Bloqueado: Atividade suspeita detectada.");
+    // Finge que está enviando para enganar o bot, mas cancela a operação
+    return; 
+  }
+
+  // ==========================================
+  // TRAVA DE SEGURANÇA 2: Rate Limiting (Anti-Spam Manual)
+  // ==========================================
+  const ultimoEnvio = localStorage.getItem('lock_envio_cv');
+  if (ultimoEnvio) {
+    const tempoPassado = Date.now() - parseInt(ultimoEnvio);
+    const tempoEspera = 5 * 60 * 1000; // 5 minutos 
+    
+    if (tempoPassado < tempoEspera) {
+      alert("⏳ Você já enviou um currículo recentemente. Por favor, aguarde 5 minutos para enviar novamente.");
+      return;
+    }
+  }
   console.log("Botão clicado! Iniciando processo...");
 
   const fileCurriculo = document.getElementById('curriculo').files[0];
@@ -118,6 +141,9 @@ form.addEventListener('submit', async (e) => {
       cargo: objCandidato.cargo,
     });
     console.log("E-mail enviado!");
+
+    // TRAVA DE SEGURANÇA: Registra a hora exata do envio bem-sucedido
+    localStorage.setItem('lock_envio_cv', Date.now().toString());
 
     // SUCESSO! Redirecionar.
     window.location.href = 'obrigado.html';

@@ -51,6 +51,12 @@
         <label for="lgpd">Concordo com a Política de Privacidade e aceito o tratamento dos meus dados para fins de recrutamento (LGPD).</label>
       </div>
 
+      <!-- HACK DE SEGURANÇA: Honeypot (Armadilha para Bots) -->
+      <div style="display: none;">
+        <label for="honeypot">Não preencha este campo se for humano:</label>
+        <input type="text" id="honeypot" name="honeypot" tabindex="-1" autocomplete="off">
+      </div>
+
       <button type="submit" id="btnEnviar">Enviar Candidatura</button>
       <p id="msgStatus" aria-live="polite"></p>
     </form>
