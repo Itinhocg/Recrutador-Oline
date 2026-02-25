@@ -1,0 +1,112 @@
+/* admin.css - Visual da tela do Administrador */
+
+body { 
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+  background: #eef2f5; 
+  padding: 30px 20px; 
+  margin: 0;
+}
+
+.container { 
+  max-width: 1100px; 
+  margin: 0 auto; 
+  background: white; 
+  padding: 30px; 
+  border-radius: 10px; 
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+}
+
+h2 {
+  color: #2c3e50;
+  margin-top: 0;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+}
+
+/* Tabela */
+table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  margin-top: 25px; 
+  font-size: 14px;
+}
+
+th, td { 
+  padding: 15px; 
+  border-bottom: 1px solid #eee; 
+  text-align: left; 
+}
+
+th { 
+  background: #0066cc; 
+  color: white; 
+  font-weight: 600;
+}
+
+tr:hover {
+  background-color: #f9fbfd;
+}
+
+/* Botões e Filtros */
+.btn-sair { 
+  float: right; 
+  background: #e74c3c; 
+  color: white; 
+  border: none; 
+  padding: 8px 15px; 
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-sair:hover {
+  background: #c0392b;
+}
+
+.filtros { 
+  margin-top: 20px; 
+  background: #f8f9fa; 
+  padding: 15px 20px; 
+  border-radius: 8px; 
+  border: 1px solid #e1e5e8;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.filtros select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/* Tela de Login */
+#loginScreen {
+  max-width: 400px;
+  text-align: center;
+  margin-top: 10vh;
+}
+
+#loginScreen input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+#loginScreen button {
+  width: 100%;
+  padding: 12px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#loginScreen button:hover {
+  background: #219653;
+}

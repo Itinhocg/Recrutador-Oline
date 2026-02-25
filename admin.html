@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin - Recrutamento</title>
+  <link rel="stylesheet" href="admin.css"> <!-- O CSS que criamos antes -->
+</head>
+<body>
+
+  <!-- TELA DE LOGIN -->
+  <div class="container" id="loginScreen">
+    <h2>Acesso Restrito</h2>
+    <p style="color: #666; margin-bottom: 20px;">Área exclusiva do RH.</p>
+    <input type="email" id="adminEmail" placeholder="E-mail do administrador" required>
+    <input type="password" id="adminSenha" placeholder="Senha" required>
+    <button onclick="fazerLogin()">Entrar no Painel</button>
+    <p id="loginErro" style="color:red; margin-top: 15px; font-weight: bold;"></p>
+  </div>
+
+  <!-- TELA DO PAINEL DE CONTROLE (Oculta até fazer login) -->
+  <div class="container" id="dashboardScreen" style="display: none;">
+    <button class="btn-sair" onclick="fazerLogout()">Sair do Sistema</button>
+    <h2>Gestão de Candidatos</h2>
+    
+    <div class="filtros">
+      <label style="font-weight: bold;">Filtrar por Cargo:</label>
+      <select id="filtroCargo" onchange="carregarCandidatos()">
+        <option value="Todos">Todos os cargos</option>
+        <option value="Caixa">Operador de Caixa</option>
+        <option value="Repositor">Repositor</option>
+        <option value="Açougue">Açougueiro</option>
+        <option value="Gerente">Gerente de Loja</option>
+      </select>
+    </div>
+
+    <!-- Tabela Responsiva (Usar overflow-x e min-width resolve bugs no celular) -->
+    <div style="overflow-x: auto;">
+      <table style="min-width: 800px;">
+        <thead>
+          <tr>
+            <th>Data de Envio</th>
+            <th>Nome do Candidato</th>
+            <th>Cargo Pretendido</th>
+            <th>Idade / Sexo</th>
+            <th>Contato</th>
+            <th>Anexos (Arquivos)</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaCorpo">
+          <!-- Dados renderizados aqui -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Biliotecas Importantes do JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <script>
+    // 1. INICIALIZAÇÃO
+    // ⚠️ ATENÇÃO: NÃO ESQUEÇA DE COLAR A SUA URL E A SUA CHAVE ANON AQUI:
+    const supabaseUrl = "https://xwidfuieyleqfddsupnl.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3aWRmdWlleWxlcWZkZHN1cG5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Njg4NzAsImV4cCI6MjA4NzU0NDg3MH0.7OwPJNt7IOYXdjMh27gAlKz_vSwmsXD8iTJNNHXGBTs";
+
+    const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // 2. FUNÇÃO: Verificar se já está logado
+    // Roda automaticamente assim que a página admin.html abre
+    async function checarSessao() {
+      const { data: { session } } = await clienteSupabase.auth.getSession();
+      
+      if (session) {
+        // Se já está logado, esconde a tela de login e mostra a tela do painel
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('dashboardScreen').style.display = 'block';
+        carregarCandidatos();
+      } else {
+        // Se NÃO está logado, deixa a tela de login visível (que é o padrão do CSS)
+        document.getElementById('loginScreen').style.display = 'block';
+      }
+    }
+    
+    // Chama a função para rodar a checagem
+    checarSessao();
+
+    // 3. FUNÇÃO: Fazer Login (Quando clica no botão "Entrar")
+    async function fazerLogin() {
+      const email = document.getElementById('adminEmail').value;
+      const senha = document.getElementById('adminSenha').value;
+      const msgerro = document.getElementById('loginErro');
+      
+      msgerro.innerText = "Entrando...";
+      msgerro.style.color = "blue";
+      
+      const { data, error } = await clienteSupabase.auth.signInWithPassword({ 
+        email: email, 
+        password: senha 
+      });
+      
+      if (error) {
+        msgerro.innerText = 'Erro: E-mail ou senha inválidos. Tente novamente.';
+        msgerro.style.color = "red";
+        console.error(error.message);
+      } else {
+        // Se o login deu certo, a gente recarrega a página.
+        // Ao recarregar, o 'checarSessao()' (acima) vai ver que a pessoa tem um "cookie" (Sessão) e já joga ela pro painel.
+        location.reload(); 
+      }
+    }
+
+    // 4. FUNÇÃO: Fazer Logout
+    async function fazerLogout() {
+      await clienteSupabase.auth.signOut();
+      // Ao deslogar, o "cookie" morre e a página é atualizada para mostrar o login
+      location.reload();
+    }
+
+    // 5. FUNÇÃO: Carregar Candidatos da Tabela (O cérebro do Dash)
+    async function carregarCandidatos() {
+      const filtro = document.getElementById('filtroCargo').value;
+      const tbody = document.getElementById('tabelaCorpo');
+      
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Buscando currículos...</td></tr>';
+
+      // Essa Query pega TODAS as colunas (*) da tabela 'candidatos'
+      // O 'order' faz a ordenação pela data (mais recentes no topo)
+      let query = clienteSupabase.from('candidatos').select('*').order('criado_em', { ascending: false });
+      
+      // Se a pessoa selecionou um cargo específico (ex: Açougue), a gente adiciona um 'filtro' (eq = equals = igual) na query
+      if (filtro !== 'Todos') {
+        query = query.eq('cargo', filtro);
+      }
+
+      // Agora a gente MANDA a query para o Supabase e espera os dados voltarem
+      const { data: candidatos, error } = await query;
+
+      if (error) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Erro ao buscar dados. Tente novamente.</td></tr>';
+        console.error("Erro ao buscar dados:", error);
+        return;
+      }
+
+      if (candidatos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666;">Nenhum candidato encontrado.</td></tr>';
+        return;
+      }
+
+      // Limpa a tabela para não duplicar dados
+      tbody.innerHTML = '';
+      
+      // 'forEach' pega um candidato de cada vez na lista de dados que chegou do banco e transforma em uma linha da tabela (<tr>)
+      candidatos.forEach(cand => {
+        // Formata a data (que está no formato do banco) para o padrão brasileiro DD/MM/AAAA
+        const dataFormatada = new Date(cand.criado_em).toLocaleDateString('pt-BR');
+        
+        const tr = document.createElement('tr');
+        
+        // Aqui dentro a gente 'costura' o HTML usando os valores dinâmicos (${variavel})
+        tr.innerHTML = `
+          <td>${dataFormatada}</td>
+          <td><strong>${cand.nome}</strong></td>
+          <td>${cand.cargo}</td>
+          <td>${cand.idade} anos<br><small>${cand.sexo}</small></td>
+          <td>${cand.telefone}<br><small>${cand.email}</small></td>
+          <td>
+            <a href="${cand.curriculo_url}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: bold; margin-bottom: 5px; display: inline-block;">📄 Currículo</a><br>
+            <a href="${cand.video_url}" target="_blank" style="color: #27ae60; text-decoration: none; font-weight: bold; display: inline-block;">🎥 Vídeo</a>
+          </td>
+        `;
+        
+        // Adiciona a linha novinha em folha no final da tabela
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>

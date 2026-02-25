@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trabalhe Conosco - Supermercado</title>
+  
+  <!-- AQUI ESTÁ A CHAMADA PARA O CSS EXTERNO -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="card">
+    <h2>Se Candidate Aqui!!!</h2>
+    <form id="formCandidato">
+      <label>Nome Completo</label>
+      <input type="text" id="nome" required>
+
+      <label>E-mail</label>
+      <input type="email" id="email" required>
+
+      <label>Telefone / WhatsApp</label>
+      <input type="tel" id="telefone" required>
+
+      <label>Idade</label>
+      <input type="number" id="idade" min="16" max="99" required>
+
+      <label>Sexo</label>
+      <select id="sexo" required>
+        <option value="">Selecione...</option>
+        <option value="Masculino">Masculino</option>
+        <option value="Feminino">Feminino</option>
+        <option value="Outro">Outro / Prefiro não informar</option>
+      </select>
+
+      <label>Cargo Pretendido</label>
+      <select id="cargo" required>
+        <option value="">Selecione a vaga...</option>
+        <option value="Caixa">Operador de Caixa</option>
+        <option value="Repositor">Repositor</option>
+        <option value="Açougue">Açougueiro</option>
+        <option value="Gerente">Gerente de Loja</option>
+      </select>
+
+      <label>Anexar Currículo (PDF)</label>
+      <input type="file" id="curriculo" accept=".pdf" required>
+
+      <label>Vídeo de Apresentação (Máx 50MB)</label>
+      <input type="file" id="video" accept="video/*" required>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="lgpd" required>
+        <label for="lgpd">Concordo com a Política de Privacidade e aceito o tratamento dos meus dados para fins de recrutamento (LGPD).</label>
+      </div>
+
+      <button type="submit" id="btnEnviar">Enviar Candidatura</button>
+      <p id="msgStatus" aria-live="polite"></p>
+    </form>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="app.js"></script> <!-- Aquele JS que te mandei antes continua igualzinho -->
+</body>
+</html>

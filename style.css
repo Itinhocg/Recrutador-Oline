@@ -1,0 +1,109 @@
+/* style.css - Visual da página do candidato e agradecimento */
+
+body { 
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+  background-color: #f4f7f6; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
+  min-height: 100vh;
+  padding: 40px; 
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.card { 
+  background: white; 
+  padding: 40px 30px; 
+  border-radius: 12px; 
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08); 
+  width: 100%; 
+  max-width: 500px; 
+}
+
+h2 { 
+  color: #2c3e50; 
+  margin-top: 0; 
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+label { 
+  display: block; 
+  margin: 15px 0 5px; 
+  color: #555; 
+  font-weight: 600; 
+  font-size: 14px;
+}
+
+input[type="text"], 
+input[type="email"], 
+input[type="tel"], 
+input[type="number"], 
+select { 
+  width: 100%; 
+  padding: 12px; 
+  border: 1px solid #dce1e6; 
+  border-radius: 6px; 
+  box-sizing: border-box; 
+  font-size: 15px;
+  background-color: #fbfbfb;
+  transition: border-color 0.3s;
+}
+
+input:focus, select:focus {
+  border-color: #0066cc;
+  outline: none;
+  background-color: #fff;
+}
+
+input[type="file"] {
+  width: 100%;
+  padding: 10px 0;
+  font-size: 14px;
+}
+
+.checkbox-group { 
+  display: flex; 
+  align-items: flex-start; 
+  margin-top: 25px; 
+  font-size: 13px; 
+  color: #666; 
+  line-height: 1.5;
+}
+
+.checkbox-group input { 
+  width: auto; 
+  margin-right: 12px; 
+  margin-top: 3px;
+}
+
+button { 
+  margin-top: 30px; 
+  width: 100%; 
+  padding: 14px; 
+  background: #0066cc; 
+  color: white; 
+  border: none; 
+  border-radius: 6px; 
+  font-size: 16px; 
+  font-weight: bold;
+  cursor: pointer; 
+  transition: background 0.3s; 
+}
+
+button:hover {
+  background: #0052a3;
+}
+
+button:disabled { 
+  background: #a0c4e8; 
+  cursor: not-allowed; 
+}
+
+#msgStatus {
+  text-align: center; 
+  font-weight: bold; 
+  margin-top: 15px;
+  font-size: 14px;
+}
