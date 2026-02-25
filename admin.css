@@ -149,3 +149,20 @@ tr:hover {
   width: 100%; padding: 10px; margin-bottom: 15px;
   border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;
 }
+
+/* Cores do Select de Status */
+.select-status {
+  padding: 6px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Classes dinâmicas injetadas pelo JavaScript */
+.status-novo { background-color: #e3f2fd; color: #0066cc; border-color: #90caf9;}
+.status-entrevista-agendada { background-color: #fff3e0; color: #d35400; border-color: #ffcc80;}
+.status-contratado { background-color: #e8f8f5; color: #27ae60; border-color: #a2d9ce;}
+.status-reprovado { background-color: #fdedec; color: #c0392b; border-color: #f5b7b1;}

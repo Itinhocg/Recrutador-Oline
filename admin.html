@@ -36,7 +36,7 @@
     </div>
 
     <div style="overflow-x: auto;">
-      <table style="min-width: 800px;">
+      <table style="min-width: 900px;">
         <thead>
           <tr>
             <th>Data de Envio</th>
@@ -44,8 +44,9 @@
             <th>Cargo Pretendido</th>
             <th>Idade / Sexo</th>
             <th>Contato</th>
+            <th>Status</th> <!-- COLUNA NOVA -->
             <th>Anexos</th>
-            <th>Ações</th> <!-- COLUNA NOVA -->
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody id="tabelaCorpo">
@@ -79,19 +80,21 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <script>
-    // 1. INICIALIZAÇÃO E CHAVES
+    // ==========================================
+    // 1. INICIALIZAÇÃO E CHAVES (COLE AS SUAS)
+    // ==========================================
     const supabaseUrl = "https://xwidfuieyleqfddsupnl.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3aWRmdWlleWxlcWZkZHN1cG5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Njg4NzAsImV4cCI6MjA4NzU0NDg3MH0.7OwPJNt7IOYXdjMh27gAlKz_vSwmsXD8iTJNNHXGBTs";
     
     const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // INICIALIZA O EMAILJS (Coloque sua chave pública aqui)
     emailjs.init("lycdmjrdHE0nwBOTT");
 
-    // Variável para guardar os dados de quem o admin clicou
     let candidatoAlvo = null;
 
+    // ==========================================
     // 2. FUNÇÕES DE AUTENTICAÇÃO
+    // ==========================================
     async function checarSessao() {
       const { data: { session } } = await clienteSupabase.auth.getSession();
       if (session) {
@@ -102,19 +105,16 @@
         document.getElementById('loginScreen').style.display = 'block';
       }
     }
-    
     checarSessao();
 
     async function fazerLogin() {
       const email = document.getElementById('adminEmail').value;
       const senha = document.getElementById('adminSenha').value;
       const msgerro = document.getElementById('loginErro');
-      
       msgerro.innerText = "Entrando...";
       msgerro.style.color = "blue";
       
-      const { data, error } = await clienteSupabase.auth.signInWithPassword({ email, password: senha });
-      
+      const { error } = await clienteSupabase.auth.signInWithPassword({ email, password: senha });
       if (error) {
         msgerro.innerText = 'Erro: E-mail ou senha inválidos.';
         msgerro.style.color = "red";
@@ -128,23 +128,23 @@
       location.reload();
     }
 
-    // 3. FUNÇÃO DE BUSCA DOS DADOS (O DASHBOARD)
+    // ==========================================
+    // 3. O DASHBOARD (RENDERIZAR TABELA)
+    // ==========================================
     async function carregarCandidatos() {
       const filtro = document.getElementById('filtroCargo').value;
       const tbody = document.getElementById('tabelaCorpo');
       
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Buscando currículos...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Buscando currículos...</td></tr>';
 
       let query = clienteSupabase.from('candidatos').select('*').order('criado_em', { ascending: false });
       
-      if (filtro !== 'Todos') {
-        query = query.eq('cargo', filtro);
-      }
+      if (filtro !== 'Todos') query = query.eq('cargo', filtro);
 
       const { data: candidatos, error } = await query;
 
       if (error || candidatos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #666;">Nenhum candidato encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #666;">Nenhum candidato encontrado.</td></tr>';
         return;
       }
 
@@ -152,47 +152,70 @@
       
       candidatos.forEach(cand => {
         const dataFormatada = new Date(cand.criado_em).toLocaleDateString('pt-BR');
+        
+        // Garante que se estiver vazio, fique como 'Novo'
+        const statusAtual = cand.status || 'Novo'; 
+        // Cria a classe CSS baseada no status (ex: "Entrevista Agendada" vira "status-entrevista-agendada")
+        const classeStatus = 'status-' + statusAtual.toLowerCase().replace(/\s+/g, '-');
+
         const tr = document.createElement('tr');
         
-        // Renderiza a linha.
+        // Renderiza a linha com o Select de Status e botões (note que agora passo o ID pro modal)
         tr.innerHTML = `
           <td>${dataFormatada}</td>
           <td><strong>${cand.nome}</strong></td>
           <td>${cand.cargo}</td>
           <td>${cand.idade} anos<br><small>${cand.sexo}</small></td>
           <td>${cand.telefone}<br><small>${cand.email}</small></td>
+          
           <td>
-            <a href="${cand.curriculo_url}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: bold; margin-bottom: 5px; display: inline-block;">📄 Currículo</a><br>
+            <select class="select-status ${classeStatus}" onchange="mudarStatus('${cand.id}', this.value, this)">
+              <option value="Novo" ${statusAtual === 'Novo' ? 'selected' : ''}>Novo</option>
+              <option value="Entrevista Agendada" ${statusAtual === 'Entrevista Agendada' ? 'selected' : ''}>Entrevista Agendada</option>
+              <option value="Contratado" ${statusAtual === 'Contratado' ? 'selected' : ''}>Contratado</option>
+              <option value="Reprovado" ${statusAtual === 'Reprovado' ? 'selected' : ''}>Reprovado</option>
+            </select>
+          </td>
+
+          <td>
+            <a href="${cand.curriculo_url}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: bold; margin-bottom: 5px; display: inline-block;">📄 CV</a><br>
             <a href="${cand.video_url}" target="_blank" style="color: #27ae60; text-decoration: none; font-weight: bold; display: inline-block;">🎥 Vídeo</a>
           </td>
           <td>
-            <button class="btn-acao btn-agendar" onclick="abrirModal('${cand.nome}', '${cand.telefone}', '${cand.email}', '${cand.cargo}')">Agendar</button>
+            <button class="btn-acao btn-agendar" onclick="abrirModal('${cand.id}', '${cand.nome}', '${cand.telefone}', '${cand.email}', '${cand.cargo}')">Agendar</button>
             <button class="btn-acao btn-excluir" onclick="deletarCandidato('${cand.id}', '${cand.nome}')">Excluir</button>
           </td>
         `;
-        
         tbody.appendChild(tr);
       });
     }
 
-    // 4. FUNÇÕES DE AÇÃO (EXCLUIR E AGENDAR)
+    // ==========================================
+    // 4. FUNÇÕES DE AÇÃO (STATUS, EXCLUIR, AGENDAR)
+    // ==========================================
     
-    // Deletar do banco
-    async function deletarCandidato(id, nome) {
-      if(!confirm(`⚠️ Tem certeza que deseja excluir o candidato ${nome}?`)) return;
+    // Altera o Status no Banco de Dados
+    async function mudarStatus(id, novoStatus, elementoSelect) {
+      // Muda a cor na hora visualmente
+      elementoSelect.className = 'select-status status-' + novoStatus.toLowerCase().replace(/\s+/g, '-');
       
-      const { error } = await clienteSupabase.from('candidatos').delete().eq('id', id);
+      const { error } = await clienteSupabase.from('candidatos').update({ status: novoStatus }).eq('id', id);
       
-      if(error) {
-        alert("Erro ao excluir. O RLS de delete foi configurado no Supabase?");
-      } else {
-        carregarCandidatos(); // Atualiza a tabela na hora
+      if (error) {
+        alert("Erro ao salvar status: " + error.message);
+        carregarCandidatos(); // Recarrega se der erro para voltar ao normal
       }
     }
 
-    // Abrir e fechar a janelinha
-    function abrirModal(nome, telefone, email, cargo) {
-      candidatoAlvo = { nome, telefone, email, cargo };
+    async function deletarCandidato(id, nome) {
+      if(!confirm(`⚠️ Tem certeza que deseja excluir o candidato ${nome}?`)) return;
+      const { error } = await clienteSupabase.from('candidatos').delete().eq('id', id);
+      if(error) alert("Erro ao excluir.");
+      else carregarCandidatos();
+    }
+
+    function abrirModal(id, nome, telefone, email, cargo) {
+      candidatoAlvo = { id, nome, telefone, email, cargo }; // Note que adicionei o ID aqui
       document.getElementById('candNomeT').innerText = nome;
       document.getElementById('modalAgendamento').style.display = 'flex';
     }
@@ -201,7 +224,6 @@
       document.getElementById('modalAgendamento').style.display = 'none';
     }
 
-    // Disparar WhatsApp via API gratuita
     function enviarWhatsApp() {
       const data = document.getElementById('dataEntrevista').value;
       const hora = document.getElementById('horaEntrevista').value;
@@ -209,16 +231,18 @@
 
       if(!data || !hora) return alert("Preencha a data e o horário.");
 
-      const dataBr = data.split('-').reverse().join('/');
-      const numeroLimpo = candidatoAlvo.telefone.replace(/\D/g, ''); // Tira traços e espaços
+      // Automação PRÓ-ATIVA: Atualiza status para Entrevista Agendada no banco silenciosamente!
+      mudarStatus(candidatoAlvo.id, 'Entrevista Agendada', document.createElement('select')); 
 
+      const dataBr = data.split('-').reverse().join('/');
+      const numeroLimpo = candidatoAlvo.telefone.replace(/\D/g, ''); 
       const mensagem = `Olá ${candidatoAlvo.nome}, tudo bem? Aqui é do setor de RH.\n\nAnalisamos seu currículo para a vaga de *${candidatoAlvo.cargo}* e você foi selecionado(a) para uma entrevista! 🎉\n\n🗓️ *Data:* ${dataBr}\n⏰ *Horário:* ${hora}\n📍 *Local:* ${local}\n\nPor favor, confirme sua presença.`;
 
       window.open(`https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagem)}`, '_blank');
       fecharModal();
+      carregarCandidatos(); // Atualiza a tela
     }
 
-    // Disparar E-mail via EmailJS
     async function enviarEmail() {
       const data = document.getElementById('dataEntrevista').value;
       const hora = document.getElementById('horaEntrevista').value;
@@ -228,12 +252,10 @@
       
       const dataBr = data.split('-').reverse().join('/');
       const btnEmail = event.target;
-      
       btnEmail.innerText = "Enviando...";
       btnEmail.disabled = true;
 
       try {
-
         await emailjs.send("service_dnul1wp", "template_h80jzoq", {
           email_candidato: candidatoAlvo.email,
           nome_candidato: candidatoAlvo.nome,
@@ -242,8 +264,13 @@
           hora: hora,
           local: local
         });
+        
+        // Automação: Atualiza o status automaticamente
+        await mudarStatus(candidatoAlvo.id, 'Entrevista Agendada', document.createElement('select'));
+        
         alert("E-mail de entrevista enviado com sucesso!");
         fecharModal();
+        carregarCandidatos(); // Atualiza a tela
       } catch (error) {
         alert("Erro ao enviar o e-mail.");
         console.error(error);
