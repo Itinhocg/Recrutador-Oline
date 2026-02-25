@@ -183,7 +183,7 @@
           </td>
           <td>
             <button class="btn-acao btn-agendar" onclick="abrirModal('${cand.id}', '${cand.nome}', '${cand.telefone}', '${cand.email}', '${cand.cargo}')">Agendar</button>
-            <button class="btn-acao btn-excluir" onclick="deletarCandidato('${cand.id}', '${cand.nome}')">Excluir</button>
+            <button class="btn-acao btn-excluir" onclick="deletarCandidato('${cand.id}', '${cand.nome}', '${cand.curriculo_url}', '${cand.video_url}')">Excluir</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -207,11 +207,33 @@
       }
     }
 
-    async function deletarCandidato(id, nome) {
-      if(!confirm(`⚠️ Tem certeza que deseja excluir o candidato ${nome}?`)) return;
-      const { error } = await clienteSupabase.from('candidatos').delete().eq('id', id);
-      if(error) alert("Erro ao excluir.");
-      else carregarCandidatos();
+        // Função de Exclusão (Arquivos + Banco de Dados)
+    async function deletarCandidato(id, nome, curriculoUrl, videoUrl) {
+      if(!confirm(`⚠️ Tem certeza que deseja excluir ${nome} e APAGAR permanentemente os arquivos (CV e Vídeo)?`)) return;
+      
+      // A URL é longa (ex: https://.../arquivos/123-cv.pdf). O split('/').pop() pega só a última parte.
+      const nomeCv = curriculoUrl.split('/').pop().split('?')[0];
+      const nomeVideo = videoUrl.split('/').pop().split('?')[0];
+
+      // 2. Deletar arquivos físicos no Storage PRIMEIRO
+      const { error: storageError } = await clienteSupabase.storage
+        .from('arquivos')
+        .remove([nomeCv, nomeVideo]);
+
+      if (storageError) {
+        console.warn("Aviso (Storage):", storageError.message);
+        // Não paramos o código aqui, pois se o arquivo já não existir, 
+        // queremos garantir que a linha da tabela suma mesmo assim.
+      }
+
+      // 3. Deletar o registro no Banco de Dados DEPOIS
+      const { error: dbError } = await clienteSupabase.from('candidatos').delete().eq('id', id);
+      
+      if(dbError) {
+        alert("Erro ao excluir do banco de dados: " + dbError.message);
+      } else {
+        carregarCandidatos(); // Atualiza a tela em tempo real
+      }
     }
 
     function abrirModal(id, nome, telefone, email, cargo) {
