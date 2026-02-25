@@ -4,9 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trabalhe Conosco - Supermercado</title>
-  
   <link rel="stylesheet" href="style.css">
 </head>
+<body> <!-- TAG CORRIGIDA AQUI -->
+
+  <!-- OVERLAY DE CARREGAMENTO (Escondido por padrão) -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <p style="color: #333; font-weight: bold; font-size: 18px;">
+      Enviando seus arquivos...<br>
+      <small style="color: #666; font-weight: normal; font-size: 14px;">Por favor, não feche esta página. Isso pode levar alguns minutos.</small>
+    </p>
+  </div>
 
   <div class="card">
     <h2>Se Candidate Aqui!!!</h2>
@@ -60,8 +69,7 @@
       <button type="submit" id="btnEnviar">Enviar Candidatura</button>
       <p id="msgStatus" aria-live="polite"></p>
     </form>
-
-</div>
+  </div>
 
   <footer class="footer-admin">
     <a href="admin.html">
