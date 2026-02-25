@@ -3,7 +3,8 @@
 body { 
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
   background-color: #f4f7f6; 
-  display: flex; 
+  display: flex;
+  flex-direction: column;  
   justify-content: center; 
   align-items: center;
   min-height: 100vh;
@@ -106,4 +107,28 @@ button:disabled {
   font-weight: bold; 
   margin-top: 15px;
   font-size: 14px;
+}
+
+.footer-admin {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.footer-admin a {
+  color: #a0aab5; /* Um cinza discreto e elegante */
+  text-decoration: none;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* O que acontece quando o mouse passa por cima (Hover) */
+.footer-admin a:hover {
+  color: #0066cc; /* Acende com a cor da marca */
+  transform: translateY(-2px); /* Dá um leve pulinho charmoso */
 }
