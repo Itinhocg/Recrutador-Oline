@@ -115,7 +115,7 @@ button:disabled {
 }
 
 .footer-admin a {
-  color: #a0aab5; /* Um cinza discreto e elegante */
+  color: #a0aab5;
   text-decoration: none;
   font-size: 13px;
   letter-spacing: 1px;
@@ -127,8 +127,7 @@ button:disabled {
   gap: 5px;
 }
 
-/* O que acontece quando o mouse passa por cima (Hover) */
 .footer-admin a:hover {
-  color: #0066cc; /* Acende com a cor da marca */
-  transform: translateY(-2px); /* Dá um leve pulinho charmoso */
+  color: #0066cc;
+  transform: translateY(-2px);
 }

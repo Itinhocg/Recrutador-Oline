@@ -81,7 +81,7 @@
   
   <script>
     // ==========================================
-    // 1. INICIALIZAÇÃO E CHAVES (COLE AS SUAS)
+    // 1. INICIALIZAÇÃO E CHAVES
     // ==========================================
     const supabaseUrl = "https://xwidfuieyleqfddsupnl.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3aWRmdWlleWxlcWZkZHN1cG5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Njg4NzAsImV4cCI6MjA4NzU0NDg3MH0.7OwPJNt7IOYXdjMh27gAlKz_vSwmsXD8iTJNNHXGBTs";
@@ -160,7 +160,7 @@
 
         const tr = document.createElement('tr');
         
-        // Renderiza a linha com o Select de Status e botões (note que agora passo o ID pro modal)
+        // Renderiza a linha com o Select de Status e botões
         tr.innerHTML = `
           <td>${dataFormatada}</td>
           <td><strong>${cand.nome}</strong></td>
@@ -237,7 +237,7 @@
     }
 
     function abrirModal(id, nome, telefone, email, cargo) {
-      candidatoAlvo = { id, nome, telefone, email, cargo }; // Note que adicionei o ID aqui
+      candidatoAlvo = { id, nome, telefone, email, cargo };
       document.getElementById('candNomeT').innerText = nome;
       document.getElementById('modalAgendamento').style.display = 'flex';
     }

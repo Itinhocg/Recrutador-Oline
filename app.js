@@ -1,16 +1,7 @@
-// 1. Inicializações (COLE SUAS CHAVES AQUI)
-//const supabaseUrl = "https://xwidfuieyleqfddsupnl.supabase.co";
-//const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3aWRmdWlleWxlcWZkZHN1cG5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Njg4NzAsImV4cCI6MjA4NzU0NDg3MH0.7OwPJNt7IOYXdjMh27gAlKz_vSwmsXD8iTJNNHXGBTs";
-//const supabase = supabaseClient.createClient(supabaseUrl, supabaseKey);
-
 // 1. Inicializações
 const supabaseUrl = "https://xwidfuieyleqfddsupnl.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3aWRmdWlleWxlcWZkZHN1cG5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5Njg4NzAsImV4cCI6MjA4NzU0NDg3MH0.7OwPJNt7IOYXdjMh27gAlKz_vSwmsXD8iTJNNHXGBTs";
 
-// Usando 'window.supabase' para acessar a biblioteca que veio do HTML
-// E mudando o nome da nossa variável para 'clienteSupabase' para não dar conflito
-
-// CORREÇÃO APLICADA AQUI:
 const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // Inicializa EmailJS
@@ -43,12 +34,11 @@ form.addEventListener('submit', async (e) => {
   msgStatus.style.color = '#0066cc';
   
   try {
-    // PASSO 1: Upload do Currículo
+    // Upload do Currículo
     msgStatus.innerText = 'Enviando currículo... (1/4)';
     console.log("Tentando subir o PDF...");
     const nomePdf = `${Date.now()}-cv-${fileCurriculo.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
     
-    // USANDO A VARIÁVEL CORRIGIDA AQUI
     const { data: cvData, error: cvError } = await clienteSupabase.storage
       .from('arquivos')
       .upload(nomePdf, fileCurriculo);
@@ -56,15 +46,13 @@ form.addEventListener('submit', async (e) => {
     if (cvError) throw cvError;
     console.log("PDF enviado com sucesso!");
     
-    // USANDO A VARIÁVEL CORRIGIDA AQUI
     const { data: urlCv } = clienteSupabase.storage.from('arquivos').getPublicUrl(nomePdf);
 
-    // PASSO 2: Upload do Vídeo
+    // Upload do Vídeo
     msgStatus.innerText = 'Enviando vídeo... Isso pode demorar (2/4)';
     console.log("Tentando subir o Vídeo...");
     const nomeVideo = `${Date.now()}-vid-${fileVideo.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
     
-    // USANDO A VARIÁVEL CORRIGIDA AQUI
     const { data: vidData, error: vidError } = await clienteSupabase.storage
       .from('arquivos')
       .upload(nomeVideo, fileVideo);
@@ -72,10 +60,9 @@ form.addEventListener('submit', async (e) => {
     if (vidError) throw vidError;
     console.log("Vídeo enviado com sucesso!");
 
-    // USANDO A VARIÁVEL CORRIGIDA AQUI
     const { data: urlVideo } = clienteSupabase.storage.from('arquivos').getPublicUrl(nomeVideo);
 
-    // PASSO 3: Salvar dados no Banco de Dados
+    // Salvar dados no Banco de Dados
     msgStatus.innerText = 'Salvando candidatura... (3/4)';
     console.log("Salvando dados na tabela...");
     
@@ -90,12 +77,11 @@ form.addEventListener('submit', async (e) => {
       video_url: urlVideo.publicUrl
     };
 
-    // USANDO A VARIÁVEL CORRIGIDA AQUI
     const { error: dbError } = await clienteSupabase.from('candidatos').insert([objCandidato]);
     if (dbError) throw dbError;
     console.log("Dados salvos no banco com sucesso!");
 
-    // PASSO 4: Enviar E-mail de confirmação via EmailJS
+    // Enviar E-mail de confirmação via EmailJS
     msgStatus.innerText = 'Notificando você por e-mail... (4/4)';
     console.log("Disparando emailJS...");
     
